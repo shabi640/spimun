@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Current debating</title>
+    <style>
+        iframe {
+            width: 100%;
+            height: 1000px;
+            /* You can change this to fit your needs */
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js" integrity="sha384-Gr6Lu2Ajx28mzwyVR8CFkULdCU7kMlZ9UthllibdOSo6qAiN+yXNHqtgdTvFXMT4" crossorigin="anonymous"></script>    <script>
+        var socket = io(); // Automatically tries to connect to the server
+
+        socket.on('message', function (data) {
+            if (data.data === 'reload') {
+                var iframe = document.getElementById('frame');
+		var src = iframe.src;
+		iframe.src = src;
+		console.log('a');
+            }
+        });
+        var intervalId = setInterval(connectSocket, 2000);
+    </script>
+    <!-- remenber to replace this link with the actual google doc link is being used -->
+    <iframe id="frame" src="https://docs.google.com/document/d/1r_HwEBpz2Va4d-gUn6H-UMZ-d3GcWvk5tM77pmm1CKk/preview"></iframe>
+</body>
+
+</html>

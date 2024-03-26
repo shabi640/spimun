@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clauses check</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-4">
+            <h1 class="text-2xl font-semibold">Clauses</h1>
+            <div class="mt-2 relative">
+                <input type="text" id='filenameFilter' class="border rounded w-full py-2 px-3" placeholder="Search filenames here">
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table id='documentsTable' class="table-auto w-full">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="px-4 py-2">country</th>
+                        <th class="px-4 py-2">type</th>
+                        <th class="px-4 py-2">text</th>
+                        <th class="px-4 py-2">time</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr><td class="border px-4 py-2">${filenameWithoutExtension}</td><td class="border px-4 py-2">
+
+                            </td></tr>
+                    {% if amendments %}
+
+            {% for type, text, timestamp, country in amendments %}
+
+                    <tr><td class="border px-4 py-2">{{ country }}</td><td class="border px-4 py-2">
+                            {{ type }}
+                            </td><td class="border px-4 py-2">
+                            {{ text }}
+                            </td>
+                        <td class="border px-4 py-2">
+                            {{ timestamp.strftime('%H:%M:%S') }}
+                            </td>
+                    </tr>
+            {% endfor %}
+
+    {% else %}
+        <p>No amendments have been submitted for this committee.</p>
+    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+</body>
+</html>
+<script>
+        var socket = io(); // Automatically tries to connect to the server
+
+        socket.on('messageamendments', function (data) {
+            if (data.data === 'reload') {
+                window.location.reload();
+
+            }
+        });
+    </script>

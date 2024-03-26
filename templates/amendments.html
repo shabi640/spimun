@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>view amendments</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-4">
+            <h1 class="text-2xl font-semibold">Amendments</h1>
+            <div class="mt-2 relative">
+                <input type="text" id='countrySearch' name="countrySearch" onkeyup="filterTable()" class="border rounded w-full py-2 px-3"
+                    placeholder="Search by country name here">
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table id='documentsTable' class="min-w-full divide-y divide-gray-200">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="px-4 py-2">country</th>
+                        <th class="px-4 py-2">type</th>
+                        <th class="px-4 py-2">text</th>
+                        <th class="px-4 py-2">time</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% if amendments %}
+
+                    {% for type, text, timestamp, country in amendments %}
+
+                    <tr>
+                        <td class="border px-4 py-2">{{ country }}</td>
+                        <td class="border px-4 py-2">{{ type }}</td>
+                        <td class="border px-4 py-2 break-all">{{ text }}</td>
+                        <td class="border px-4 py-2">
+                            {{ timestamp.strftime('%H:%M:%S') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    {% else %}
+                    <p>No amendments have been submitted for this committee.</p>
+                    {% endif %}
+                </tbody>
+            </table>
+
+
+        </div>
+
+    </div>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        var socket = io(); // Automatically tries to connect to the server
+
+        socket.on('messageamendments', function (data) {
+            if (data.data === 'reload') {
+                window.location.reload();
+
+            }
+        });
+    </script>
+<script>
+function filterTable() {
+  let input = document.getElementById("countrySearch");
+  let filter = input.value.toUpperCase();
+  let table = document.getElementById("documentsTable");
+  let tr = table.getElementsByTagName("tr");
+
+  for (let i = 0; i < tr.length; i++) {
+    let td = tr[i].getElementsByTagName("td")[0]; // Assumes country is in the first column
+    if (td) {
+      let txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+</script>
+</body>
+
+</html>

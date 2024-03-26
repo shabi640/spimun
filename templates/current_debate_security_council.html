@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>security council underdebate</title>
+    <style>
+        .document-container {
+            border: 1px solid black; /* Black border */
+            background-color: lightgrey; /* Light grey background */
+            padding: 20px; /* Some padding inside the div */
+            margin: 20px auto; /* Center the div with automatic margin */
+            width: 80%;
+            word-wrap: break-word; /* Ensure text breaks to prevent overflow */
+        }
+        .underline {text-decoration: underline;}
+    </style>
+</head>
+<body>
+    <div id="content" class="document-container">{{ html_content|safe }}</div>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('updateContentsecurity_council', function(data) {
+            document.getElementById('content').innerHTML = data;
+        });
+    </script>
+</body>
+</html>

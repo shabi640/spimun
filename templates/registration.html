@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>clause submittion</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+      margin: 0;
+
+    }
+
+    .container {
+      /* height: 50%;
+    width: 40%; */
+      padding: 20px;
+      background-color: #d4edda;
+      border-radius: 20px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .radio-inputs {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      border-radius: 0.5rem;
+      background-color: #d4edda;
+      box-sizing: border-box;
+      /* box-shadow: 0 0 0px 1px rgba(0, 0, 0, 0.06); */
+      padding: 0.25rem;
+      width: 300px;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .radio-inputs .radio {
+      flex: 1 1 auto;
+      text-align: center;
+    }
+
+    .radio-inputs .radio input {
+      display: none;
+    }
+
+    .radio-inputs .radio .name {
+      display: flex;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+      border: none;
+      padding: .5rem 0;
+      color: rgba(51, 65, 85, 1);
+      transition: all .15s ease-in-out;
+    }
+
+    .radio-inputs .radio input:checked+.name {
+      background-color: #fff;
+      font-weight: 600;
+    }
+
+    .file-upload {
+      display: block;
+      margin: 20px 0;
+      background-color: #006400;
+      /* Dark green */
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .file-upload:hover {
+      background-color: #004d00;
+      /* Darker green */
+    }
+
+    .submit-button {
+      background-color: #097409;
+      /* Gray */
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      display: block;
+      /* Ensure it's displayed as a block */
+    }
+
+    .submit-button:hover {
+      background-color: #2d9c3a;
+      /* Darker gray */
+    }
+
+    .custom-file-upload {
+      background-color: #d4edda;
+      /* Dark green */
+      color: black;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-block;
+      /* Ensure it's inline-block */
+      margin-bottom: 15px;
+      /* Increased margin for better spacing */
+    }
+
+
+    .custom-file-upload :hover {
+      background-color: #fff;
+      padding: 0.75rem;
+      transition: all .15s ease-in-out;
+      border-radius: 0.5rem;
+    }
+
+
+    .file-upload-input {
+      opacity: 0;
+      position: absolute;
+      z-index: -1;
+    }
+
+    #file-name {
+      margin-bottom: 15px;
+      /* Space for file name, if shown */
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <div>
+      <form id="uploadForm" method="post" enctype=multipart/form-data>
+        <div class="radio-inputs">
+          <label class="radio">
+            <input type="radio" name="radio" value="senior" checked="">
+            <span class="name">Senior</span>
+          </label>
+          <label class="radio">
+            <input type="radio" name="radio" value="junior">
+            <span class="name">Junior</span>
+          </label>
+
+          <label class="radio">
+            <input type="radio" name="radio" value="security_council">
+            <span class="name">Security council</span>
+          </label>
+        </div>
+
+        <label for="file-upload" class="custom-file-upload">
+          <span id="upload-text">please choose a file here</span>
+        </label>
+        <input id="file-upload" type="file" name="file" class="file-upload-input" accept=".docx" onchange="updateFileName()">
+        <p id="message" style="display:none; color: rgba(51, 65, 85, 1);">Please choose a file before submitting.</p>
+        <button id="submitButton" class="submit-button" type="submit">Submit</button>
+
+        <script>
+          function updateFileName() {
+            var input = document.getElementById('file-upload');
+            var uploadText = document.getElementById('upload-text');
+            var fileName = input.files[0] ? input.files[0].name : "Upload file"; // Use "Upload file" as fallback
+            uploadText.textContent = fileName; // Update the label text to show file name
+          }
+        </script>
+        <script>
+          const fileInput = document.getElementById('file-upload');
+          const uploadForm = document.getElementById('uploadForm');
+          const message = document.getElementById('message');
+          uploadForm.addEventListener('submit', function (event) {
+            if (!fileInput.files.length) { // Check if a file is selected
+              event.preventDefault(); // Prevent form submission
+              message.style.display = 'block'; // Show the message
+            }
+            else{
+              const file = fileInput.files[0];
+              const fileType = file.name.split('.').pop();
+              if (fileType !== 'docx') { // Check the file extension
+                event.preventDefault(); // Stop the form submission
+                alert('Please submit a .docx document.'); // Alert the user
+              }
+            }
+
+          });
+
+          fileInput.addEventListener('change', function () {
+            if (this.files.length) { // Check if a file is selected
+              message.style.display = 'none'; // Hide the message if file is selected
+            }
+          });
+        </script>
+
+      </form>
+      <script>
+        const messageFromFlask = "{{ messageFromFlask }}";
+            document.addEventListener('DOMContentLoaded', function() {
+            if (messageFromFlask) {
+    alert(messageFromFlask);
+}});
+      </script>
+    </div>
+  </div>
+
+</body>
+
+</html>

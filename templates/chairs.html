@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clauses check</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div class="mb-4">
+            <h1 class="text-2xl font-semibold">Clauses</h1>
+            <div class="mt-2 relative">
+                <input type="text" id='filenameFilter' class="border rounded w-full py-2 px-3" placeholder="Search filenames here">
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table id='documentsTable' class="table-auto w-full">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="px-4 py-2">filename</th>
+                        <th class="px-4 py-2">action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Repeat for each organization -->
+                    <script>
+                        const filenames = {{ filenames | tojson }};
+                        var comittee = "{{ comittee }}";
+                        function removeFileExtension(filename) {
+                            return filename.replace(/\.docx$/, "");
+                        }
+                        
+                        // Function to populate the table with filenames
+                        function populateTable(filenames) {
+                            const tableBody = document.getElementById('documentsTable').getElementsByTagName('tbody')[0];
+                            tableBody.innerHTML = ''; // Clear existing table rows
+                        
+                            // Create a new row for each filename
+                            filenames.forEach((filename,index) => {
+                                let filenameWithoutExtension = removeFileExtension(filename);
+                                let row = `<tr><td class="border px-4 py-2">${filenameWithoutExtension}</td><td class="border px-4 py-2">
+                            <button onclick="handleButtonClick(${index})" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2">open document</button>
+                            </td></tr>`;
+                                tableBody.innerHTML += row;
+                            });
+                        }
+                        
+                        function handleButtonClick(index) {
+                            window.location.href = '/display/' + comittee + '/' + filenames[index];
+                        }
+                        // Initially populate the table with all filenames
+                        populateTable(filenames);
+                        
+                        // Event listener for the input field
+                        document.getElementById('filenameFilter').addEventListener('keyup', function() {
+                            const inputVal = this.value.toLowerCase(); // Convert input to lower case for case-insensitive matching
+                            
+                            // Filter filenames that include the input value
+                            const filteredFilenames = filenames.filter(filename => filename.toLowerCase().includes(inputVal));
+                            
+                            // Repopulate the table with the filtered filenames
+                            populateTable(filteredFilenames);
+                        });
+                        </script>
+                    <!-- Repeat end -->
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+</body>
+</html>
