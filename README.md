@@ -1,10 +1,7 @@
 # SPIMUN 2025
 
-![SPIMUN Logo](https://via.placeholder.com/150) <!-- Replace with actual logo -->
+> The official platform for St.Peters International Modelling United Nations 2025
 
-> The official platform for Shanghai Pinghe International Model United Nations 2025
-
-[![GitHub stars](https://img.shields.io/github/stars/shabi640/spimun)](https://github.com/shabi640/spimun/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/shabi640/spimun)](https://github.com/shabi640/spimun/issues)
 [![GitHub license](https://img.shields.io/github/license/shabi640/spimun)](https://github.com/shabi640/spimun/blob/main/LICENSE)
 
@@ -140,7 +137,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE) - a permissive license that allows you to:
+
+- ✅ Use the software commercially
+- ✅ Modify the software
+- ✅ Distribute the software
+- ✅ Use and modify the software privately
+
+The only requirement is to include the original copyright and license notice in any copy of the software/source.
+
+See the [LICENSE](LICENSE) file for the full text of the license.
 
 ## 📬 Contact
 
