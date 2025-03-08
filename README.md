@@ -3,7 +3,7 @@
 > The official platform for St.Peters International Modelling United Nations 2025
 
 [![GitHub issues](https://img.shields.io/github/issues/shabi640/spimun)](https://github.com/shabi640/spimun/issues)
-[![GitHub license](https://img.shields.io/github/license/shabi640/spimun)](https://github.com/shabi640/spimun/blob/main/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/shabi640/spimun)](https://github.com/shabi640/spimun/blob/master/LICENSE)
 
 ## 📋 Table of Contents
 
@@ -106,7 +106,7 @@ npm run dev
 npm run build
 ```
 
-The frontend development server will start at `http://localhost:3000` (or another port if 3000 is in use).
+The frontend development server will start at `http://localhost:5173` (or another port if 3000 is in use).
 
 ### Running the Backend
 
