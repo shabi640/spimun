@@ -1,0 +1,82 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.npm
+frontend/dist/
+frontend/.vite/
+frontend/spimun@0.0.0
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
+.venv
+venv/
+ENV/
+
+# Flask
+instance/*.db
+instance/*.sqlite
+
+# Uploaded files (uncomment if you don't want to track user uploads)
+# uploads/
+# backend/uploads/
+# backend/media/
+# chatfiles/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor/IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.c9/
+*.launch
+*.sublime-workspace
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.cache/
+.parcel-cache/
+
+# Utility scripts that might contain sensitive information
+remove_element_plus.txt
+replace_element_ui.sh
+fix_remaining.sh 
