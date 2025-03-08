@@ -1,0 +1,195 @@
+/**
+ * @license Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+/*
+ * Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+
+:root {
+	--ck-bookmark-icon-hover-fill-color: var(--ck-color-widget-hover-border);
+	--ck-bookmark-icon-selected-fill-color: var(--ck-color-focus-border);
+	--ck-bookmark-icon-animation-duration: var(--ck-widget-handler-animation-duration);
+	--ck-bookmark-icon-animation-curve: var(--ck-widget-handler-animation-curve);
+}
+
+.ck-bookmark.ck-widget {
+		outline: none;
+	}
+
+.ck-bookmark.ck-widget .ck-bookmark__icon .ck-icon__fill {
+			transition: fill var(--ck-bookmark-icon-animation-duration) var(--ck-bookmark-icon-animation-curve);
+		}
+
+.ck-bookmark.ck-widget:hover .ck-bookmark__icon .ck-icon__fill {
+				fill: var(--ck-bookmark-icon-hover-fill-color);
+			}
+
+.ck-bookmark.ck-widget.ck-widget_selected .ck-bookmark__icon .ck-icon__fill {
+				fill: var(--ck-bookmark-icon-selected-fill-color);
+			}
+
+.ck-bookmark.ck-widget.ck-widget_selected,
+		.ck-bookmark.ck-widget.ck-widget_selected:hover {
+			outline: none;
+		}
+
+.ck-bookmark.ck-widget .ck-bookmark__icon {
+			position: relative;
+			/* To make it align with text baseline. */
+			top: -0.1em;
+		}
+
+.ck-bookmark.ck-widget .ck-bookmark__icon .ck-icon {
+				height: 1.2em;
+				width: auto;
+				vertical-align: middle;
+			}
+
+/*
+ * Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+
+/*
+ * Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+
+.ck.ck-bookmark-view:focus {
+		outline: none;
+	}
+
+.ck.ck-bookmark-form {
+	display: flex;
+	align-items: flex-start;
+}
+
+@media screen and (max-width: 600px) {
+
+.ck.ck-bookmark-form {
+		flex-wrap: wrap;
+}
+
+		.ck.ck-bookmark-form .ck-button,
+		.ck.ck-bookmark-form .ck-labeled-field-view {
+			flex-basis: 100%;
+		}
+
+		.ck.ck-bookmark-form .ck-button {
+			justify-content: center;
+		}
+	}
+
+@media screen and (max-width: 600px) {
+				.ck.ck-bookmark-form.ck-responsive-form > .ck-button:nth-last-child(1) {
+					margin: var(--ck-spacing-large);
+					padding: 0 var(--ck-spacing-standard);
+					border-radius: var(--ck-border-radius);
+				}
+	}
+
+/*
+ * Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+
+/*
+ * Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+
+.ck-vertical-form .ck-button::after {
+		content: "";
+		width: 0;
+		position: absolute;
+		right: -1px;
+		top: -1px;
+		bottom: -1px;
+		z-index: 1;
+	}
+
+.ck-vertical-form .ck-button:focus::after {
+		display: none;
+	}
+
+@media screen and (max-width: 600px) {
+			.ck.ck-responsive-form .ck-button::after {
+				content: "";
+				width: 0;
+				position: absolute;
+				right: -1px;
+				top: -1px;
+				bottom: -1px;
+				z-index: 1;
+			}
+
+			.ck.ck-responsive-form .ck-button:focus::after {
+				display: none;
+			}
+	}
+
+/*
+ * Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+
+/*
+ * Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+/*
+ * Copyright (c) 2003-2025, CKSource Holding sp. z o.o. All rights reserved.
+ * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-licensing-options
+ */
+/**
+ * Makes element unselectable.
+ */
+
+.ck.ck-bookmark-actions {
+	display: flex;
+	align-items: center;
+}
+
+.ck.ck-bookmark-actions .ck-bookmark-actions__preview {
+		max-width: var(--ck-input-width);
+		min-width: 3em;
+		font-weight: normal;
+		text-overflow: ellipsis;
+		text-align: center;
+		overflow: hidden;
+
+		-moz-user-select: none;
+
+		-webkit-user-select: none;
+
+		-ms-user-select: none;
+
+		user-select: none;
+		cursor: default;
+	}
+
+@media screen and (max-width: 600px) {
+
+.ck.ck-bookmark-actions {
+		display: flex;
+		flex-wrap: wrap;
+}
+
+		.ck.ck-bookmark-actions .ck-bookmark-actions__preview {
+			flex-basis: 100%;
+			margin: var(--ck-spacing-standard) var(--ck-spacing-standard) 0;
+			min-width: auto;
+		}
+	}
+
+@media screen and (max-width: 600px) {
+
+.ck.ck-bookmark-actions.ck-responsive-form .ck-button {
+				flex-basis: 50%;
+				margin-top: var(--ck-spacing-standard);
+		}
+	}
+
+/*# sourceMappingURL=index.css.map */

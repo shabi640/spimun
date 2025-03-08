@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".", // Sets the base directory for resolving non-relative paths
+    "paths": {
+      "@/*": ["src/*"] // Maps `@/` to the `src` directory
+    },
+    "target": "ES2015", // Use ES2015 for modern features like async/await
+    "lib": ["ES2015", "DOM"], // Includes modern JS features and browser APIs
+    "module": "ESNext", // Use the latest module syntax (ES modules)
+    "moduleResolution": "node", // Resolves modules in a Node.js-style manner
+    "allowSyntheticDefaultImports": true, // Allows default imports from modules with no default export
+    "esModuleInterop": true // Improves interoperability for CommonJS modules
+  },
+  "exclude": [
+    "node_modules", 
+    "dist",
+    "src/components/GreenCKEditor.vue",
+    "src/components/GreenCKEditorExample.vue"
+  ]
+}

@@ -1,0 +1,44 @@
+bcrypt==4.2.0
+beautifulsoup4==4.12.3
+bidict==0.23.1
+blinker==1.8.2
+Bottleneck @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_2bxpizxa3c/croot/bottleneck_1707864819812/work
+bs4==0.0.2
+click==8.1.7
+contourpy==1.2.1
+cycler==0.12.1
+Flask==3.0.3
+Flask-Bcrypt==1.0.1
+Flask-Cors==4.0.1
+Flask-JWT-Extended==4.6.0
+Flask-SocketIO==5.3.6
+Flask-SQLAlchemy==3.1.1
+fonttools==4.53.1
+h11==0.14.0
+itsdangerous==2.2.0
+Jinja2==3.1.4
+kiwisolver==1.4.5
+lxml==5.2.2
+MarkupSafe==2.1.5
+matplotlib==3.9.1.post1
+numexpr @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_45yefq0kt6/croot/numexpr_1696515289183/work
+numpy @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_a51i_mbs7m/croot/numpy_and_numpy_base_1708638620867/work/dist/numpy-1.26.4-cp311-cp311-macosx_11_0_arm64.whl#sha256=3d90dd3382cff7becb2384f73058a8e72b81c697e8bb77f1c69a82caca5b0c57
+packaging==24.1
+pandas @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_b53hgou29t/croot/pandas_1718308972393/work/dist/pandas-2.2.2-cp311-cp311-macosx_11_0_arm64.whl#sha256=a5d15311899355b1b06bbc8e9c159537dc70abd2d98ee2d87eea721e83afa579
+pillow==10.4.0
+PyJWT==2.9.0
+pypandoc==1.13
+pyparsing==3.1.2
+python-dateutil @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_66ud1l42_h/croot/python-dateutil_1716495741162/work
+python-docx==1.1.2
+python-engineio==4.9.0
+python-socketio==5.11.2
+pytz @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_a4b76c83ik/croot/pytz_1713974318928/work
+simple-websocket==1.0.0
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+soupsieve==2.5
+SQLAlchemy==2.0.32
+typing_extensions==4.11.0
+tzdata @ file:///croot/python-tzdata_1690578112552/work
+Werkzeug==3.0.3
+wsproto==1.2.0

@@ -1,0 +1,14 @@
+
+[auto-import] plugin installed but no imports has defined, see https://github.com/antfu/unplugin-auto-import#configura
+[auto-import] plugin installed but no imports has defined, see https://github.com/antfu/unplugin-auto-import#configurations for configurations
+error when starting dev server:
+TypeError: Cannot read properties of undefined (reading 'viteOptimizeDeps')
+    at config (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/unplugin-auto-import/dist/chunk-
+    at config (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/unplugin-auto-import/dist/chunk-NADVNBCH.js:403:21)
+    at runConfigHook (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/vite/dist/node/chunks/dep
+    at runConfigHook (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/vite/dist/node/chunks/dep-BzOvws4Y.js:66608:25)
+    at async resolveConfig (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/vite/dist/node/chun
+    at async resolveConfig (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/vite/dist/node/chunks/dep-BzOvws4Y.js:66057:12)
+    at async _createServer (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/vite/dist/node/chun
+    at async _createServer (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/vite/dist/node/chunks/dep-BzOvws4Y.js:62653:18)
+    at async CAC.<anonymous> (file:///Users/mzl/Desktop/desktop/spimun/Archive/frontend/node_modules/vite/dist/node/cl

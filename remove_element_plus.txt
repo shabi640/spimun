@@ -1,0 +1,2 @@
+// Remove fully from main.js
+Let's create a README document with instructions for completing the migration away from Element Plus
