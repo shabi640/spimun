@@ -35,14 +35,16 @@ venv/
 ENV/
 
 # Flask
-instance/*.db
-instance/*.sqlite
+instance/
+# instance/*.db
+# instance/*.sqlite
 
-# Uploaded files (uncomment if you don't want to track user uploads)
-# uploads/
-# backend/uploads/
-# backend/media/
-# chatfiles/
+# User uploaded and data files
+uploads/
+backend/uploads/
+backend/media/
+chatfiles/
+archived_amendments.json
 
 # macOS
 .DS_Store
