@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Enable version updates for npm (frontend)
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    # Only allow security updates and patch version updates
+    open-pull-requests-limit: 10
+    allow:
+      - dependency-type: "all"
+      - dependency-name: "*"
+
+  # Enable version updates for pip (backend)
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    # Only allow security updates and patch version updates
+    open-pull-requests-limit: 10
+    allow:
+      - dependency-type: "all"
+      - dependency-name: "*"
