@@ -32,20 +32,36 @@
             <GlassUpload ref="uploadRef" class="upload-demo" :action="uploadUrl" :auto-upload="false" accept=".docx"
                 :on-change="handleChange" :file-list="fileList" :headers="uploadHeaders" :on-success="onUploadSuccess"
                 :on-error="onUploadError" :before-upload="beforeUpload" :on-progress="onUploadProgress"
-                :on-remove="handleRemove" drag>
+                :on-remove="handleRemove" @upload-requested="handleUploadRequested" drag>
                 <template #default>
-                    <div class="upload-drag-area" @click.stop>
-                        <!-- 隐藏的文件输入框 -->
-                        <input type="file" ref="manualFileInput" accept=".docx" style="display: none;"
-                            @change="manualFileChange" />
+                    <div class="upload-area-container">
+                        <!-- File Selection Area (shown only when no file is selected) -->
+                        <div v-if="fileList.length === 0" class="upload-drag-area" @click.stop>
+                            <!-- 隐藏的文件输入框 -->
+                            <input type="file" ref="manualFileInput" accept=".docx" style="display: none;"
+                                @change="manualFileChange" />
 
-                        <!-- 简洁的上传区域 -->
-                        <div class="upload-content" @click.stop="selectFile">
-                            <GlassIcon name="edit" size="large" color="primary" />
-                            <div class="upload-text">Drop document here or click to select</div>
-                            <div v-if="fileList.length > 0" class="selected-filename">
-                                Selected: <strong>{{ fileList[0]?.name }}</strong>
+                            <!-- 简洁的上传区域 -->
+                            <div class="upload-content" @click.stop="selectFile">
+                                <GlassIcon name="edit" size="large" color="primary" />
+                                <div class="upload-text">Drop document here or click to select</div>
                             </div>
+                        </div>
+
+                        <!-- Selected File Display (shown only when a file is selected) -->
+                        <div v-else class="selected-file-display">
+                            <div class="selected-file-info">
+                                <GlassIcon name="edit" size="medium" color="primary" style="margin-right: 10px;" />
+                                <div>
+                                    <div class="selected-file-name">{{ fileList[0]?.name }}</div>
+                                    <div class="selected-file-type">Word Document (.docx)</div>
+                                </div>
+                            </div>
+                            <GlassButton type="default" size="small" @click="handleRemove(fileList[0])"
+                                class="remove-btn-inline">
+                                <GlassIcon name="close" size="small" color="danger" />
+                                Clear
+                            </GlassButton>
                         </div>
                     </div>
                 </template>
@@ -53,12 +69,6 @@
                 <!-- 使用actions插槽来定制上传按钮 -->
                 <template #actions>
                     <div class="upload-actions">
-                        <GlassButton v-if="fileList.length > 0" type="text" @click="handleRemove(fileList[0])"
-                            class="remove-btn">
-                            <GlassIcon name="close" size="small" color="danger" />
-                            Clear selection
-                        </GlassButton>
-
                         <GlassButton class="custom-upload-button" type="primary" @click="submitUpload"
                             :loading="uploading" :disabled="fileList.length === 0"
                             style="background: linear-gradient(135deg, rgba(79, 236, 184, 0.8), rgba(79, 236, 184, 0.6)); border: none; padding: 10px 20px; box-shadow: 0 4px 15px rgba(79, 236, 184, 0.3);">
@@ -159,6 +169,7 @@ const socket = io('http://127.0.0.1:8000')
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const uploadSuccess = ref(false)
+let isUploadInProgress = false; // Flag to prevent multiple simultaneous uploads
 
 // 计算滑动指示器的位置
 const indicatorPosition = computed(() => {
@@ -197,10 +208,10 @@ const fetchUploadedFiles = async () => {
 
 const handleChange = (file: UploadFile, files: UploadFile[]) => {
     console.log('handleChange called', file, files);
-    if (files.length > 1) {
-        fileList.value = [file];
-    } else {
+    if (files && files.length) {
         fileList.value = files;
+    } else if (file) {
+        fileList.value = [file];
     }
     // 确保文件列表更新后，按钮状态也会更新
     setTimeout(() => {
@@ -227,6 +238,12 @@ const onUploadProgress = (event: any, file: UploadFile) => {
 }
 
 const submitUpload = () => {
+    // Prevent duplicate uploads
+    if (isUploadInProgress) {
+        console.log('Upload already in progress, ignoring duplicate request');
+        return;
+    }
+
     if (fileList.value.length === 0) {
         GlassMessage({
             message: 'Please select a file before uploading!',
@@ -236,6 +253,7 @@ const submitUpload = () => {
     }
 
     uploading.value = true;
+    isUploadInProgress = true; // Set flag to prevent duplicate uploads
     const selectedFile = fileList.value[0];
 
     // 创建FormData对象
@@ -254,13 +272,15 @@ const submitUpload = () => {
         }
     };
 
-    // 使用axios直接上传
+    // 使用axios直接上传，确保只上传一次
     axios.post(uploadUrl.value, formData, config)
         .then(response => {
             onUploadSuccess(response, selectedFile);
+            isUploadInProgress = false; // Reset flag after successful upload
         })
         .catch(error => {
             onUploadError(error);
+            isUploadInProgress = false; // Reset flag after failed upload
         });
 }
 
@@ -331,6 +351,24 @@ watch(selectedGroup, (newGroup) => {
 onMounted(() => {
     fetchUploadedFiles()
     setupSocketListeners()
+
+    // Apply the directive to the upload area to prevent drag/drop when a file is selected
+    if (uploadRef.value && uploadRef.value.$el) {
+        const uploadInput = uploadRef.value.$el.querySelector('.glass-upload__input');
+        if (uploadInput) {
+            preventDropWhenFileSelected(uploadInput);
+        }
+    }
+
+    // Override the GlassUpload's submitUpload method to prevent duplicate uploads
+    if (uploadRef.value) {
+        const originalSubmitUpload = uploadRef.value.submitUpload;
+        uploadRef.value.submitUpload = function () {
+            console.log('Using custom upload implementation instead of GlassUpload internal one');
+            // Just call our own implementation
+            submitUpload();
+        };
+    }
 })
 
 onUnmounted(() => {
@@ -354,11 +392,43 @@ const selectFile = (event) => {
         event.stopPropagation();
     }
 
+    // 如果已经有文件被选中，不允许选择新文件
+    if (fileList.value.length > 0) {
+        console.log('A file is already selected. Please remove it first.');
+        return;
+    }
+
     // 确保只触发一次文件选择框
     if (manualFileInput.value && !uploading.value) {
         console.log('Triggering file selection');
         manualFileInput.value.click();
     }
+};
+
+// Modify the GlassUpload component's drop handler through a directive
+const preventDropWhenFileSelected = (el) => {
+    const originalDragOver = el.__dragover__;
+    const originalDrop = el.__drop__;
+
+    // Override the dragover event
+    el.addEventListener('dragover', (e) => {
+        if (fileList.value.length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        if (originalDragOver) originalDragOver(e);
+    });
+
+    // Override the drop event
+    el.addEventListener('drop', (e) => {
+        if (fileList.value.length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        if (originalDrop) originalDrop(e);
+    });
 };
 
 // 处理手动选择的文件
@@ -375,14 +445,34 @@ const manualFileChange = (event: any) => {
         // 直接更新fileList
         fileList.value = [selectedFile];
 
-        // 如果GlassUpload需要知道已选择文件，触发其on-change事件
-        if (uploadRef.value && typeof uploadRef.value.handleFiles === 'function') {
-            uploadRef.value.handleFiles([selectedFile]);
+        // 确保GlassUpload组件知道文件已经选择 - 修复按钮启用问题
+        if (uploadRef.value) {
+            if (typeof uploadRef.value.handleFiles === 'function') {
+                // 确保使用正确的参数调用handleFiles
+                uploadRef.value.handleFiles([selectedFile]);
+            } else {
+                // 如果handleFiles不可用，直接尝试通过props更新
+                // 这将触发GlassUpload组件中的watch
+                console.log('Using fileList prop update fallback');
+            }
+
+            // 确保与GlassUpload组件中的on-change事件签名相符
+            uploadRef.value.$emit && uploadRef.value.$emit('on-change', selectedFile, [selectedFile]);
         }
+
+        // 控制台记录以验证文件列表已更新
+        console.log('Manual file selection complete, fileList:', fileList.value);
 
         // 重置input以便可以再次选择同一文件
         event.target.value = '';
     }
+};
+
+// Add a new function to handle the upload-requested event
+const handleUploadRequested = (files) => {
+    // This ensures we only use our implementation and not the component's internal one
+    console.log('Upload requested from GlassUpload component, using our implementation');
+    submitUpload();
 };
 </script>
 
@@ -500,7 +590,7 @@ const manualFileChange = (event: any) => {
 .upload-actions {
     margin-top: 15px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
 }
 
@@ -577,6 +667,11 @@ const manualFileChange = (event: any) => {
     margin-left: 12px;
 }
 
+.upload-area-container {
+    width: 100%;
+    margin: 15px 0;
+}
+
 .upload-drag-area {
     display: flex;
     flex-direction: column;
@@ -585,7 +680,6 @@ const manualFileChange = (event: any) => {
     height: 120px;
     border: 2px dashed rgba(255, 255, 255, 0.3);
     border-radius: 8px;
-    margin: 15px 0;
     transition: all 0.3s;
     cursor: pointer;
     background: rgba(0, 0, 0, 0.05);
@@ -612,39 +706,64 @@ const manualFileChange = (event: any) => {
     font-size: 16px;
 }
 
-.selected-filename {
-    margin-top: 10px;
-    padding: 5px 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    font-size: 14px;
+.selected-file-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-radius: 8px;
+    background: rgba(79, 236, 184, 0.05);
+    border: 1px solid rgba(79, 236, 184, 0.2);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.selected-file-display:hover {
+    background: rgba(79, 236, 184, 0.08);
+    border-color: rgba(79, 236, 184, 0.3);
+}
+
+.selected-file-info {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    margin-right: 15px;
+}
+
+.selected-file-name {
+    font-weight: bold;
+    color: white;
+    word-break: break-all;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
-.no-files {
-    padding: 20px;
-    text-align: center;
+.selected-file-type {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85em;
+    margin-top: 3px;
 }
 
-.filename-cell {
+.remove-btn-inline {
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 10px;
     display: flex;
     align-items: center;
+    gap: 5px;
+    border-radius: 4px;
+    color: #ff6b6b;
+    font-size: 12px;
+    transition: all 0.2s;
 }
 
-.action-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: white;
-    font-size: 1.1rem;
-    /* Smaller heading */
+.remove-btn-inline:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ff4f4f;
 }
 
 .upload-progress-container {
@@ -695,6 +814,9 @@ h3 {
     border: none;
     padding: 10px 20px;
     box-shadow: 0 4px 15px rgba(79, 236, 184, 0.3);
+    margin-left: auto;
+    /* Push to right */
+    transition: all 0.3s ease;
 }
 
 .custom-upload-button:hover:not(:disabled) {
@@ -706,5 +828,10 @@ h3 {
 .custom-upload-button:active:not(:disabled) {
     transform: translateY(0);
     box-shadow: 0 2px 10px rgba(79, 236, 184, 0.2);
+}
+
+.custom-upload-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 </style>

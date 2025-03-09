@@ -22,25 +22,9 @@
             </div>
         </div>
 
-        <div v-if="fileList.length > 0" class="glass-upload__file-list">
-            <div v-for="(file, index) in fileList" :key="index" class="glass-upload__file-item">
-                <div class="glass-upload__file-info">
-                    <div class="glass-upload__file-name">{{ file.name }}</div>
-                    <div class="glass-upload__file-size">{{ formatSize(file.size) }}</div>
-                </div>
-                <button class="glass-upload__remove-btn" @click.stop="removeFile(index)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
         <div class="glass-upload__actions">
             <slot name="actions">
-                <GlassButton v-if="fileList.length > 0 && !autoUpload" type="primary" @click="submitUpload">
+                <GlassButton v-if="internalFileList.length > 0 && !autoUpload" type="primary" @click="submitUpload">
                     Upload
                 </GlassButton>
             </slot>
@@ -89,15 +73,30 @@ export default {
         limit: {
             type: Number,
             default: 0
+        },
+        fileList: {
+            type: Array,
+            default: () => []
         }
     },
-    emits: ['on-success', 'on-error', 'on-progress', 'on-exceed', 'on-remove', 'on-change'],
+    emits: ['on-success', 'on-error', 'on-progress', 'on-exceed', 'on-remove', 'on-change', 'upload-requested'],
     data() {
         return {
             isDragging: false,
-            fileList: [],
+            internalFileList: [],
             uploadingFiles: {}
         };
+    },
+    watch: {
+        fileList: {
+            handler(newFileList) {
+                // Update internal file list when the prop changes
+                this.internalFileList = [...newFileList];
+                console.log('GlassUpload fileList prop changed:', this.internalFileList);
+            },
+            immediate: true,
+            deep: true
+        }
     },
     methods: {
         handleDragOver() {
@@ -110,38 +109,69 @@ export default {
             this.isDragging = false;
             const files = e.dataTransfer.files;
             if (!files) return;
-            this.handleFiles(files);
+
+            // Only handle dropped files if none are already selected
+            if (this.internalFileList.length === 0) {
+                this.handleFiles(files);
+            }
         },
         triggerFileInput() {
-            this.$refs.fileInput.click();
+            // Only allow triggering file input if no files are selected
+            if (this.internalFileList.length === 0) {
+                this.$refs.fileInput.click();
+            }
         },
         handleFileChange(e) {
             const files = e.target.files;
             if (!files) return;
-            this.handleFiles(files);
+
+            // Only handle files if none are already selected
+            if (this.internalFileList.length === 0) {
+                this.handleFiles(files);
+            }
+
             // Reset the input so the same file can be uploaded again
             this.$refs.fileInput.value = null;
         },
         handleFiles(files) {
             const uploadFiles = Array.from(files);
 
-            if (this.limit && this.fileList.length + uploadFiles.length > this.limit) {
-                this.$emit('on-exceed', uploadFiles, this.fileList);
+            if (this.limit && this.internalFileList.length + uploadFiles.length > this.limit) {
+                this.$emit('on-exceed', uploadFiles, this.internalFileList);
                 return;
             }
 
             uploadFiles.forEach(file => {
-                this.fileList.push(file);
+                this.internalFileList.push(file);
             });
 
-            this.$emit('on-change', this.fileList);
+            this.$emit('on-change', this.internalFileList[0], this.internalFileList);
 
             if (this.autoUpload) {
                 this.submitUpload();
             }
         },
         submitUpload() {
-            this.fileList.forEach((file, index) => {
+            // Emit an event instead of handling uploads directly
+            // This allows parent components to handle the upload if desired
+            this.$emit('upload-requested', this.internalFileList);
+
+            // Skip internal upload handling if a listener exists for upload-requested event
+            // This check needs to be adapted based on the Vue version (2 or 3)
+            const hasUploadListener =
+                // Vue 2 style
+                (this.$listeners && this.$listeners['upload-requested']) ||
+                // Vue 3 style (check if any listeners exist for this event)
+                this._events && this._events['upload-requested'] && this._events['upload-requested'].length > 0;
+
+            if (hasUploadListener) {
+                console.log('Parent component is handling the upload, skipping internal upload');
+                return;
+            }
+
+            // Only perform uploads directly if no parent is handling it
+            console.log('No parent handler found, using internal upload mechanism');
+            this.internalFileList.forEach((file, index) => {
                 if (this.uploadingFiles[index]) return;
                 this.uploadFile(file, index);
             });
@@ -173,23 +203,23 @@ export default {
 
             axios.post(this.action, formData, config)
                 .then(response => {
-                    this.$emit('on-success', response, file, this.fileList);
+                    this.$emit('on-success', response, file, this.internalFileList);
                     this.uploadingFiles[index] = false;
                 })
                 .catch(error => {
-                    this.$emit('on-error', error, file, this.fileList);
+                    this.$emit('on-error', error, file, this.internalFileList);
                     this.uploadingFiles[index] = false;
                 });
         },
         removeFile(index) {
-            const file = this.fileList[index];
-            this.fileList.splice(index, 1);
-            this.$emit('on-remove', file, this.fileList);
-            this.$emit('on-change', this.fileList);
+            const file = this.internalFileList[index];
+            this.internalFileList.splice(index, 1);
+            this.$emit('on-remove', file, this.internalFileList);
+            this.$emit('on-change', file, this.internalFileList);
         },
         clearFiles() {
-            this.fileList = [];
-            this.$emit('on-change', this.fileList);
+            this.internalFileList = [];
+            this.$emit('on-change', null, this.internalFileList);
         },
         formatSize(bytes) {
             if (bytes === 0) return '0 B';
