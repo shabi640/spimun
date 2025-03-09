@@ -13,7 +13,7 @@
                     <span class="collapse-icon">{{ isClauseExpanded ? '▼' : '►' }}</span>
                 </div>
                 <div v-if="isClauseExpanded" class="glass-collapse-content">
-                    <div v-html="currentClause.content"></div>
+                    <div v-html="sanitizedClauseContent"></div>
                 </div>
             </div>
         </div>
@@ -41,12 +41,13 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 import { GlassAlert, GlassButton, GlassMessage } from '../components/ui';
 import CkeditorComponent from '../components/ckeditor.vue';
+import DOMPurify from 'dompurify';
 
 export default {
     name: 'UploadAmendments',
@@ -191,6 +192,19 @@ export default {
             });
         };
 
+        // Sanitize HTML content to prevent XSS attacks
+        const sanitizeHtml = (html) => {
+            return DOMPurify.sanitize(html);
+        };
+
+        // Computed property for sanitized clause content
+        const sanitizedClauseContent = computed(() => {
+            if (currentClause.value) {
+                return sanitizeHtml(currentClause.value.content);
+            }
+            return '';
+        });
+
         onMounted(() => {
             const delegate = JSON.parse(localStorage.getItem('delegate') || 'null');
             if (!delegate) {
@@ -224,7 +238,8 @@ export default {
             submitAmendment,
             isClauseExpanded,
             toggleClause,
-            isSubmitting
+            isSubmitting,
+            sanitizedClauseContent
         };
     }
 };

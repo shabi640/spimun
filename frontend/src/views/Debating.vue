@@ -17,15 +17,14 @@
                 <!-- Original Clause -->
                 <div class="clause-box">
                     <h3>Original Clause</h3>
-                    <div class="clause-content"
-                        v-html="amendmentState.isEditingActive.value ? amendmentState.originalContent : originalContent">
+                    <div class="original-content" v-html="sanitizedOriginalContent">
                     </div>
                 </div>
 
                 <!-- Amended Clause -->
                 <div class="clause-box">
                     <h3>Proposed Changes</h3>
-                    <div class="clause-content diff-view" v-html="amendedDiff"></div>
+                    <div class="clause-content diff-view" v-html="sanitizedAmendedDiff"></div>
                 </div>
             </div>
         </div>
@@ -41,7 +40,7 @@
                     </span>
                 </div>
             </div>
-            <div class="clause-content" v-html="currentClause.content"></div>
+            <div class="clause-content" v-html="sanitizedClauseContent"></div>
         </div>
 
         <div v-else class="no-clause">
@@ -67,6 +66,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { GlassMessage } from '../components/ui';
 import { useRoute } from 'vue-router';
 import { useAmendmentState } from '../composables/useAmendmentState';
+import DOMPurify from 'dompurify';
 
 export default {
     name: 'DebatingGroup',
@@ -114,6 +114,27 @@ export default {
             return amendmentState.isEditingActive.value
                 ? amendmentState.editingContent.value
                 : proposedContent.value;
+        });
+
+        // Sanitize HTML content to prevent XSS attacks
+        const sanitizeHtml = (html) => {
+            return DOMPurify.sanitize(html);
+        };
+
+        // Computed properties for sanitized content
+        const sanitizedOriginalContent = computed(() => {
+            return sanitizeHtml(amendmentState.isEditingActive.value ? amendmentState.originalContent : originalContent.value);
+        });
+
+        const sanitizedAmendedDiff = computed(() => {
+            return sanitizeHtml(amendedDiff.value);
+        });
+
+        const sanitizedClauseContent = computed(() => {
+            if (currentClause.value) {
+                return sanitizeHtml(currentClause.value.content);
+            }
+            return '';
         });
 
         // Data fetching
@@ -394,19 +415,19 @@ export default {
 
         const formatCommitteeName = (name) => {
             if (!name) return '';
-            
+
             // Committee name mapping
             const committeeNameMap = {
                 'junior': 'Junior',
                 'senior': 'Senior',
                 'security-council': 'Security Council'
             };
-            
+
             // Use the mapping if available
             if (committeeNameMap[name]) {
                 return committeeNameMap[name];
             }
-            
+
             // Otherwise format properly: replace hyphens with spaces and capitalize first letter of each word
             return name.replace(/-/g, ' ')
                 .split(' ')
@@ -443,7 +464,10 @@ export default {
             proposedContent,
             originalContent,
             amendedDiff,
-            amendmentState
+            amendmentState,
+            sanitizedOriginalContent,
+            sanitizedAmendedDiff,
+            sanitizedClauseContent
         };
     }
 };
@@ -732,12 +756,12 @@ p {
 }
 
 /* Safari-specific fixes */
-@media not all and (min-resolution:.001dpcm) { 
+@media not all and (min-resolution:.001dpcm) {
     @supports (-webkit-appearance:none) {
         .no-clause {
             background-color: rgba(255, 255, 255, 0.95);
         }
-        
+
         .empty-state-message {
             background-color: #ffffff;
         }

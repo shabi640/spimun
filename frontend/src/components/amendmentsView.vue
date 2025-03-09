@@ -30,7 +30,7 @@
                                 </GlassIcon>
                             </div>
                             <div v-show="activeAmendment === amendment.id" class="amendment-content">
-                                <div v-html="amendment.amendment_text"></div>
+                                <div v-html="sanitizeHtml(amendment.amendment_text)"></div>
                                 <div class="amendment-actions">
                                     <GlassButton @click="openAmendmentEditor(amendment)" type="primary" size="small"
                                         class="edit-button">
@@ -71,7 +71,7 @@
                         <div v-for="amendment in approvedForClause" :key="amendment.id" class="amendment-item approved">
                             <div class="amendment-header" @click="showApprovedAmendmentDialog(amendment)">
                                 <span class="country">{{ amendment.country }}</span>
-                                <div class="amendment-preview" v-html="amendment.amendment_text"></div>
+                                <div class="amendment-preview" v-html="sanitizeHtml(amendment.amendment_text)"></div>
                                 <GlassTag type="success" size="small">Approved</GlassTag>
                                 <span class="timestamp">{{ formatTimestamp(amendment.timestamp) }}</span>
                                 <GlassIcon class="toggle-icon" name="document" color="primary" size="small"></GlassIcon>
@@ -106,7 +106,7 @@
                                     </GlassIcon>
                                 </div>
                                 <div v-show="activeAmendment === amendment.id" class="amendment-content">
-                                    <div v-html="amendment.amendment_text"></div>
+                                    <div v-html="sanitizeHtml(amendment.amendment_text)"></div>
                                     <div class="amendment-actions">
                                         <GlassButton @click="openAmendmentEditor(amendment)" type="primary" size="small"
                                             class="edit-button">
@@ -163,10 +163,10 @@
                     <div class="amendment-info">
                         <span class="country">From: {{ selectedAmendment?.country }}</span>
                         <span class="timestamp">{{ selectedAmendment ? formatTimestamp(selectedAmendment.timestamp) : ''
-                            }}</span>
+                        }}</span>
                     </div>
                     <div class="amendment-reference-content" v-if="selectedAmendment"
-                        v-html="selectedAmendment.amendment_text">
+                        v-html="sanitizeHtml(selectedAmendment.amendment_text)">
                     </div>
                 </div>
             </div>
@@ -186,7 +186,9 @@
                     <span class="country">From: {{ selectedApprovedAmendment.country }}</span>
                     <span class="timestamp">{{ formatTimestamp(selectedApprovedAmendment.timestamp) }}</span>
                 </div>
-                <div class="amendment-view-content glass-panel" v-html="selectedApprovedAmendment.amendment_text"></div>
+                <div class="amendment-view-content glass-panel"
+                    v-html="sanitizeHtml(selectedApprovedAmendment.amendment_text)">
+                </div>
             </div>
             <template #footer>
                 <div class="dialog-footer">
@@ -223,7 +225,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="clause-content glass-panel" v-html="currentClause.content"></div>
+                <div class="clause-content glass-panel" v-html="sanitizeHtml(currentClause.content)"></div>
             </div>
             <template #footer>
                 <div class="dialog-footer">
@@ -241,6 +243,7 @@ import { io } from 'socket.io-client';
 import CKEditor from '../components/ckeditor.vue';
 import { GlassMessage, GlassIcon, GlassAlert, GlassButton, GlassEmpty, GlassTag, GlassDialog } from '../components/ui';
 import { useAmendmentState } from '../composables/useAmendmentState';
+import DOMPurify from 'dompurify';
 
 export default {
     name: 'AmendmentsView',
@@ -283,6 +286,11 @@ export default {
 
         // Import shared amendment state
         const amendmentState = useAmendmentState();
+
+        // Sanitize HTML content to prevent XSS attacks
+        const sanitizeHtml = (html) => {
+            return DOMPurify.sanitize(html);
+        };
 
         // Computed properties
         const currentClauseAmendments = computed(() => {
@@ -329,6 +337,28 @@ export default {
         });
 
         const hasPublishedAmendment = computed(() => publishedAmendmentsCount.value > 0);
+
+        // Computed properties for sanitized content
+        const sanitizedAmendmentText = computed(() => {
+            if (selectedAmendment.value) {
+                return sanitizeHtml(selectedAmendment.value.amendment_text);
+            }
+            return '';
+        });
+
+        const sanitizedApprovedAmendmentText = computed(() => {
+            if (selectedApprovedAmendment.value) {
+                return sanitizeHtml(selectedApprovedAmendment.value.amendment_text);
+            }
+            return '';
+        });
+
+        const sanitizedClauseContent = computed(() => {
+            if (currentClause.value) {
+                return sanitizeHtml(currentClause.value.content);
+            }
+            return '';
+        });
 
         // Helper functions
         const filterAndSortAmendments = (amendmentsList, clauseId = null) => {
@@ -819,7 +849,8 @@ export default {
             startDrag,
             totalAmendmentsCount,
             pendingAmendmentsCount,
-            hasPublishedAmendment
+            hasPublishedAmendment,
+            sanitizeHtml
         };
     }
 };
