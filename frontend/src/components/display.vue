@@ -56,12 +56,13 @@
         <GlassDialog v-model="showFormattingDialog" title="DeepSeek Formatting" width="70%"
             :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
             <div class="formatting-dialog-content">
-                <p v-if="isFormatting">DeepSeek is reformatting your document...</p>
+                <p v-if="isFormatting">DeepSeek is reformatting your document... <span
+                        v-if="activeEventSource">(formatting in progress, you can cancel at any time)</span></p>
                 <div v-if="formattedContent" class="formatted-preview" v-html="sanitizedFormattedContent"></div>
             </div>
             <template #footer>
                 <span class="dialog-footer">
-                    <GlassButton @click="cancelFormatting" :disabled="isFormatting">Cancel</GlassButton>
+                    <GlassButton @click="cancelFormatting">Cancel</GlassButton>
                     <GlassButton type="primary" @click="applyFormatting" :disabled="isFormatting || !formattedContent">
                         Apply Formatting
                     </GlassButton>
@@ -113,15 +114,14 @@ export default {
     },
     setup(props, { emit }) {
         const isPublished = ref(false);
-        console.log('[DISPLAY] Creating socket connection in setup');
         const socket = io('http://127.0.0.1:8000');
         socket.on('connect', () => {
-            console.log('[DISPLAY] Socket connected with ID:', socket.id);
+            // Socket connected
         });
 
-        // Add a listener for the clause_published event to check if it's being triggered
+        // Add a listener for the clause_published event
         socket.on('clause_published', (data) => {
-            console.log('[DISPLAY] Received clause_published event in setup listener:', data);
+            // Clause published event received
         });
 
         const isFormatting = ref(false);
@@ -134,6 +134,7 @@ export default {
         const isPublishing = ref(false); // Add this to track if a publish operation is in progress
         const isRejecting = ref(false); // Add this to track if a reject operation is in progress
         const isUnpublishing = ref(false); // Add this to track if an unpublish operation is in progress
+        const activeEventSource = ref(null); // Add this to track the active EventSource for cancellation
 
         // Check if the clause is already published when component mounts
         const checkPublishStatus = async () => {
@@ -182,6 +183,11 @@ export default {
             if (saveTimeout.value) {
                 clearTimeout(saveTimeout.value);
             }
+            // Make sure to close any active EventSource when component unmounts
+            if (activeEventSource.value) {
+                activeEventSource.value.close();
+                activeEventSource.value = null;
+            }
         });
 
         return {
@@ -199,7 +205,8 @@ export default {
             saveTimeout,
             isPublishing,
             isRejecting,
-            isUnpublishing
+            isUnpublishing,
+            activeEventSource
         };
     },
     data() {
@@ -260,7 +267,6 @@ export default {
 
                 // Don't save if the clause is published
                 if (this.isPublished) {
-                    console.log('[DISPLAY] Clause is published, skipping auto-save');
                     this.saveStatus = 'saved';
                     return;
                 }
@@ -300,22 +306,18 @@ export default {
         async confirmReject() {
             // Prevent multiple calls in quick succession
             if (this.isRejecting) {
-                console.log('[DISPLAY] Reject already in progress, ignoring duplicate call');
                 return;
             }
 
             try {
                 this.isRejecting = true; // Set flag to indicate reject is in progress
-                console.log('[DISPLAY] confirmReject method called');
 
                 const response = await axios.post(`http://127.0.0.1:8000/clause/${this.clauseId}/reject`);
 
                 if (response.data.success) {
-                    console.log('[DISPLAY] API call successful, setting isPublished to false');
                     this.isPublished = false;
 
                     // Emit socket event for real-time updates
-                    console.log('[DISPLAY] Emitting clause_rejected socket event');
                     this.socket.emit('clause_rejected', {
                         clauseId: this.clauseId,
                         committee: this.group,
@@ -326,7 +328,6 @@ export default {
                     this.showRejectDialog = false;
 
                     // Show success message
-                    console.log('[DISPLAY] Showing success message');
                     GlassMessage.success('Clause rejected successfully');
 
                     // Go back to the list view immediately
@@ -347,13 +348,11 @@ export default {
         async publishClause() {
             // Prevent multiple calls in quick succession
             if (this.isPublishing) {
-                console.log('[DISPLAY] Publish already in progress, ignoring duplicate call');
                 return;
             }
 
             try {
                 this.isPublishing = true; // Set flag to indicate publish is in progress
-                console.log('[DISPLAY] publishClause method called');
 
                 const response = await axios.post(`http://127.0.0.1:8000/clause/${this.clauseId}/publish`, {
                     committee: this.group,
@@ -361,15 +360,12 @@ export default {
                 });
 
                 if (response.data.success) {
-                    console.log('[DISPLAY] API call successful, setting isPublished to true');
                     this.isPublished = true;
 
                     // Show success message immediately after API call succeeds
-                    console.log('[DISPLAY] Showing success message');
                     GlassMessage.success('Clause published successfully');
 
                     // Emit socket event for real-time updates with silent flag
-                    console.log('[DISPLAY] Emitting clause_published socket event with silent=true');
                     this.socket.emit('clause_published', {
                         clauseId: this.clauseId,
                         committee: this.group,
@@ -394,26 +390,21 @@ export default {
         async unpublishClause() {
             // Add a reactive variable to track unpublish state
             if (this.isUnpublishing) {
-                console.log('[DISPLAY] Unpublish already in progress, ignoring duplicate call');
                 return;
             }
 
             try {
                 this.isUnpublishing = true; // Set flag to indicate unpublish is in progress
-                console.log('[DISPLAY] unpublishClause method called');
 
                 const response = await axios.post(`http://127.0.0.1:8000/clause/${this.clauseId}/unpublish`);
 
                 if (response.data.success) {
-                    console.log('[DISPLAY] API call successful, setting isPublished to false');
                     this.isPublished = false;
 
                     // Show success message immediately after API call succeeds
-                    console.log('[DISPLAY] Showing success message');
                     GlassMessage.success('Clause unpublished successfully');
 
                     // Emit socket event for real-time updates with silent flag
-                    console.log('[DISPLAY] Emitting clause_unpublished socket event with silent=true');
                     this.socket.emit('clause_unpublished', {
                         clauseId: this.clauseId,
                         committee: this.group,
@@ -451,11 +442,15 @@ export default {
                 this.showFormattingDialog = true;
                 this.formattedContent = ''; // Clear previous content
 
+                // Store the EventSource instance so we can close it when canceling
+                this.activeEventSource = null;
+
                 // Call the backend endpoint to start the formatting process
                 await axios.post(`http://127.0.0.1:8000/clause/${this.clauseId}/format-with-deepseek`);
 
                 // Use Server-Sent Events to handle streaming response
                 const eventSource = new EventSource(`http://127.0.0.1:8000/clause/${this.clauseId}/stream-format`);
+                this.activeEventSource = eventSource;
 
                 // Initialize an empty string to build up the response
                 let streamedContent = '';
@@ -467,13 +462,20 @@ export default {
                     if (data.error) {
                         GlassMessage.error(`Error: ${data.error}`);
                         eventSource.close();
+                        this.activeEventSource = null;
                         this.isFormatting = false;
                         return;
                     }
 
                     if (data.done) {
                         // Formatting is complete
+                        // Apply post-processing to improve list formatting
+                        if (streamedContent) {
+                            streamedContent = this.improveListFormatting(streamedContent);
+                            this.formattedContent = streamedContent;
+                        }
                         eventSource.close();
+                        this.activeEventSource = null;
                         this.isFormatting = false;
                         return;
                     }
@@ -481,13 +483,19 @@ export default {
                     if (data.chunk) {
                         // Add the new chunk to our content
                         streamedContent += data.chunk;
-                        this.formattedContent = streamedContent;
+
+                        // Apply formatting in real-time to the accumulated content
+                        const formattedStreamContent = this.improveListFormatting(streamedContent);
+                        this.formattedContent = formattedStreamContent;
                     }
 
                     // If we receive the final content in one go
                     if (data.final_content) {
-                        this.formattedContent = data.final_content;
+                        // Apply post-processing to improve list formatting
+                        const processedContent = this.improveListFormatting(data.final_content);
+                        this.formattedContent = processedContent;
                         eventSource.close();
+                        this.activeEventSource = null;
                         this.isFormatting = false;
                     }
                 };
@@ -496,6 +504,7 @@ export default {
                 eventSource.onerror = (error) => {
                     console.error('EventSource error:', error);
                     eventSource.close();
+                    this.activeEventSource = null;
                     GlassMessage.error('Error streaming formatted content');
                     this.isFormatting = false;
                 };
@@ -503,19 +512,85 @@ export default {
                 GlassMessage.error('Failed to format document with DeepSeek.');
                 console.error(error);
                 this.isFormatting = false;
+                if (this.activeEventSource) {
+                    this.activeEventSource.close();
+                    this.activeEventSource = null;
+                }
             }
+        },
+        // Helper method to improve list formatting in HTML
+        improveListFormatting(html) {
+            // Create a temporary DOM element to manipulate the HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            // Process all lists to ensure proper indentation and structure
+            const processLists = (element) => {
+                // Process all unordered lists
+                const ulElements = element.querySelectorAll('ul');
+                ulElements.forEach(ul => {
+                    ul.style.paddingLeft = '2em';
+                    ul.style.marginTop = '0.5em';
+                    ul.style.marginBottom = '0.5em';
+
+                    // Process list items within this list
+                    const liElements = ul.querySelectorAll('li');
+                    liElements.forEach(li => {
+                        li.style.marginBottom = '0.5em';
+                        li.style.lineHeight = '1.5';
+
+                        // If this list item contains a paragraph, ensure proper spacing
+                        const paragraphs = li.querySelectorAll('p');
+                        paragraphs.forEach(p => {
+                            p.style.marginTop = '0.25em';
+                            p.style.marginBottom = '0.25em';
+                        });
+                    });
+                });
+
+                // Process all ordered lists
+                const olElements = element.querySelectorAll('ol');
+                olElements.forEach(ol => {
+                    ol.style.paddingLeft = '2em';
+                    ol.style.marginTop = '0.5em';
+                    ol.style.marginBottom = '0.5em';
+
+                    // Process list items within this list
+                    const liElements = ol.querySelectorAll('li');
+                    liElements.forEach(li => {
+                        li.style.marginBottom = '0.5em';
+                        li.style.lineHeight = '1.5';
+
+                        // If this list item contains a paragraph, ensure proper spacing
+                        const paragraphs = li.querySelectorAll('p');
+                        paragraphs.forEach(p => {
+                            p.style.marginTop = '0.25em';
+                            p.style.marginBottom = '0.25em';
+                        });
+                    });
+                });
+            };
+
+            // Apply the processing
+            processLists(tempDiv);
+
+            // Return the improved HTML
+            return tempDiv.innerHTML;
         },
         async applyFormatting() {
             try {
                 this.isFormatting = true;
 
+                // Ensure the formatted content has proper list formatting before applying
+                const finalFormattedContent = this.improveListFormatting(this.formattedContent);
+
                 // Call the backend endpoint to update the clause content
                 await axios.post(`http://127.0.0.1:8000/clause/${this.clauseId}/update-content`, {
-                    formatted_content: this.formattedContent
+                    formatted_content: finalFormattedContent
                 });
 
                 // Update the local content
-                this.editorData = this.formattedContent;
+                this.editorData = finalFormattedContent;
 
                 // Close the dialog
                 this.showFormattingDialog = false;
@@ -529,8 +604,21 @@ export default {
             }
         },
         cancelFormatting() {
+            // Stop the generation by closing the EventSource connection
+            if (this.activeEventSource) {
+                this.activeEventSource.close();
+                this.activeEventSource = null;
+
+                // Also notify the backend to stop generation if needed
+                axios.post(`http://127.0.0.1:8000/clause/${this.clauseId}/cancel-format`)
+                    .catch(error => {
+                        console.error('Error while canceling format:', error);
+                    });
+            }
+
             this.formattedContent = '';
             this.showFormattingDialog = false;
+            this.isFormatting = false;
         },
         goBack() {
             this.$emit('go-back');
@@ -662,6 +750,8 @@ export default {
 .formatted-preview ol,
 .formatted-preview ul {
     padding-left: 2em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }
 
 .formatted-preview ol ol,
@@ -675,6 +765,33 @@ export default {
 
 .formatted-preview li {
     margin-bottom: 0.5em;
+    line-height: 1.5;
+    position: relative;
+}
+
+/* Improve nested list indentation with visual indicators */
+.formatted-preview ul>li {
+    list-style-type: disc;
+    padding-left: 0.5em;
+}
+
+.formatted-preview ul>li>ul>li {
+    list-style-type: circle;
+}
+
+.formatted-preview ul>li>ul>li>ul>li {
+    list-style-type: square;
+}
+
+/* Improve spacing between list items */
+.formatted-preview li+li {
+    margin-top: 0.5em;
+}
+
+/* Ensure proper alignment of multi-line list items */
+.formatted-preview li>p {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
 }
 
 /* Handle different list styles */
