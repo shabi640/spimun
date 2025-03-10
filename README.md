@@ -94,6 +94,27 @@ cp .env.example .env
 
 Update the `.env` files in both directories with your specific configurations.
 
+#### Environment Variables
+
+For security reasons, sensitive data like API keys and secret tokens are stored in environment variables. The repository includes `.env.example` files that show the required variables without exposing actual values.
+
+Important environment variables:
+
+- `DEEPSEEK_API_KEY`: Your DeepSeek API key for AI formatting features
+- `JWT_SECRET_KEY`: Secret key for JWT token generation
+
+To set up:
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit the .env file with your actual values
+nano .env
+```
+
+⚠️ Never commit your actual `.env` file to version control!
+
 ## 💻 Usage
 
 ### Running the Frontend

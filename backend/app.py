@@ -7,6 +7,7 @@ import pypandoc
 import json
 from models import db, bcrypt, Amendment, Chair, Delegate, Group, Message, File, Clause, UnreadCount  # Import all models
 from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
 
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import joinedload
@@ -16,11 +17,12 @@ import re
 
 
 #configure flask app
+load_dotenv()  # Load environment variables from .env file
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for development
 BASE_UPLOAD_FOLDER = 'uploads'
-app.config['JWT_SECRET_KEY'] = 'LAIWHFoHEFAWHBOIGBFOBWEFOWBAOFGBAIWOEFBNC'
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'fallback_secret_key')
 app.config['UPLOAD_FOLDER'] = BASE_UPLOAD_FOLDER
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///amendments.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -1154,8 +1156,11 @@ def stream_format(clause_id):
             # DeepSeek API endpoint
             deepseek_api_url = "https://api.deepseek.com/v1/chat/completions"
             
-            # DeepSeek API key - in production, use environment variables
-            api_key = os.environ.get("DEEPSEEK_API_KEY", "sk-519079ea9b144723a1c62c2bcb98202c")
+            # DeepSeek API key from environment variables
+            api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+            
+            if not api_key:
+                return jsonify({"error": "DeepSeek API key not configured"}), 500
             
             # Prepare the request payload
             payload = {
