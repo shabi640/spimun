@@ -74,11 +74,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, provide, onMounted, watch } from 'vue';
+import { ref, computed, provide, onMounted, watch, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import LoginForm from '@/components/LoginForm.vue';
 import { GlassMessage } from './components/ui';
 import '@/assets/glassmorphism.css';
+import eventBus from '@/utils/eventBus';
 
 const activeIndex = ref('1');
 const router = useRouter();
@@ -214,6 +215,9 @@ const handleLogin = (delegateInfo) => {
   localStorage.setItem('delegate', JSON.stringify(delegateInfo));
   isLoginFormVisible.value = false;
 
+  // Emit login event to notify other components
+  eventBus.emit('login', delegateInfo);
+
   // Navigate to home to force re-render
   router.push({ path: '/', query: { t: Date.now() } });
 };
@@ -222,8 +226,29 @@ const signOut = () => {
   console.log('signOut called'); // Debug log
   localStorage.removeItem('delegate');
   delegate.value = null;
+
+  // Emit logout event to notify other components
+  eventBus.emit('logout');
+
   router.push('/');
 };
+
+// Listen for login/logout events from other components
+onMounted(() => {
+  eventBus.on('login', (delegateInfo) => {
+    delegate.value = delegateInfo;
+  });
+
+  eventBus.on('logout', () => {
+    delegate.value = null;
+  });
+});
+
+// Clean up event listeners
+onBeforeUnmount(() => {
+  eventBus.off('login');
+  eventBus.off('logout');
+});
 
 const countryCode = computed(() => {
   if (!delegate.value || !delegate.value.country) return '';
@@ -500,11 +525,14 @@ li {
 
 /* Special styling for the home route */
 .content-wrapper.home-content {
-  height: 100vh; /* Full height for home */
+  height: 100vh;
+  /* Full height for home */
   padding: 0;
   margin: 0;
-  overflow: hidden; /* Prevent scrollbars during transitions */
-  position: absolute; /* Ensure it's positioned absolutely */
+  overflow: hidden;
+  /* Prevent scrollbars during transitions */
+  position: absolute;
+  /* Ensure it's positioned absolutely */
   top: 0;
   left: 0;
   right: 0;

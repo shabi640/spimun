@@ -25,9 +25,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, inject, watch, nextTick } from 'vue';
+import { ref, onMounted, inject, watch, nextTick, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import LoginForm from '@/components/LoginForm.vue';
+import eventBus from '@/utils/eventBus';
 
 const delegate = ref(JSON.parse(localStorage.getItem('delegate') || 'null'));
 const route = useRoute();
@@ -42,10 +43,25 @@ onMounted(async () => {
   if (typeof setNavBarVisibility === 'function') {
     setNavBarVisibility(true); // Show navigation bar immediately
   }
-  
+
   // Add a small delay to ensure smooth rendering
   await nextTick();
   document.querySelector('.fullscreen-glass')?.classList.add('ready');
+
+  // Listen for login/logout events from App.vue
+  eventBus.on('login', (delegateInfo) => {
+    delegate.value = delegateInfo;
+  });
+
+  eventBus.on('logout', () => {
+    delegate.value = null;
+  });
+});
+
+// Clean up event listeners
+onBeforeUnmount(() => {
+  eventBus.off('login');
+  eventBus.off('logout');
 });
 
 // Watch for route changes and update nav bar visibility
@@ -73,6 +89,9 @@ const handleLogin = (delegateInfo) => {
   delegate.value = delegateInfo;
   localStorage.setItem('delegate', JSON.stringify(delegateInfo));
   isLoginFormVisible.value = false;
+
+  // Emit login event to notify App.vue
+  eventBus.emit('login', delegateInfo);
 
   // Force re-render without query parameter to avoid jittering
   router.push('/');
