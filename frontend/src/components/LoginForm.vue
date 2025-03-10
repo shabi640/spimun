@@ -5,6 +5,7 @@
             <h2 class="glass-title login-title">Welcome to SPIMUN</h2>
             <div class="glass-divider"></div>
 
+            <!-- Regular login form used by both delegates and chairs -->
             <GlassFormItem label="Name">
                 <input v-model="name" placeholder="Enter your name" required class="standard-input">
             </GlassFormItem>
@@ -19,6 +20,7 @@
                     :options="committeeOptions" @change="handleCommitteeChange">
                 </GlassSelect>
             </GlassFormItem>
+
             <div v-if="errorMessage" class="error-message">
                 <GlassAlert :title="errorMessage" type="error" :show-icon="true"></GlassAlert>
             </div>
@@ -45,7 +47,6 @@ export default {
             name: '',
             country: '',
             committee: 'junior',
-            id: '',
             errorMessage: '',
             // Define country and committee options directly in the component
             countryOptions: [
@@ -141,6 +142,9 @@ export default {
                 return;
             }
 
+            // Check if this might be a chair login based on the name field
+            const isChairSecretKey = this.name.startsWith('CHAIR_SECRET_KEY_');
+
             // Create login request data
             const loginData = {
                 name: this.name,
@@ -152,11 +156,26 @@ export default {
             axios.post('http://127.0.0.1:8000/api/login', loginData)
                 .then(response => {
                     if (response.data.success) {
-                        // Use the ID returned from the backend
+                        // Determine if this is a chair login based on the secret key pattern
+                        // The backend will handle validation of the key, this is just for UI handling
+                        let delegateName, delegateCountry;
+
+                        if (isChairSecretKey) {
+                            // This is likely a chair login, get the committee from response
+                            delegateName = response.data.committee.charAt(0).toUpperCase() +
+                                response.data.committee.slice(1) + ' Chair';
+                            delegateCountry = 'Chair';
+                        } else {
+                            // Regular delegate login
+                            delegateName = this.name;
+                            delegateCountry = this.country;
+                        }
+
+                        // Create delegate info object
                         const delegateInfo = {
-                            name: this.name,
-                            country: this.country,
-                            committee: response.data.committee || this.committee,
+                            name: delegateName,
+                            country: delegateCountry,
+                            committee: response.data.committee,
                             id: response.data.id
                         };
 
@@ -191,7 +210,7 @@ export default {
 </script>
 
 <style scoped>
-/* 登录对话框样式 */
+/* Login dialog styles */
 .login-dialog {
     z-index: 2000 !important;
 }

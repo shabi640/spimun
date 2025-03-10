@@ -404,15 +404,50 @@ def loginDelegate():
     data = request.json
     name = data.get('name')
     country = data.get('country')
-
-    # Query the database for the delegate
-    delegate = Delegate.query.filter_by(name=name, country=country).first()
+    
+    # Define secret keys for chair delegates (store these in environment variables in production)
+    chair_secret_keys = {
+        "CHAIR_SECRET_KEY_JUNIOR_39129591": {"committee": "junior", "chair_name": "Junior Chair"},
+        "CHAIR_SECRET_KEY_SENIOR_73824642": {"committee": "senior", "chair_name": "Senior Chair"},
+        "CHAIR_SECRET_KEY_SC_48375628": {"committee": "security council", "chair_name": "Security Council Chair"}
+    }
+    
+    # Check if the name is one of our secret chair keys
+    if name in chair_secret_keys:
+        # This is a chair login with a secret key
+        chair_info = chair_secret_keys[name]
+        committee = chair_info["committee"]
+        chair_name = chair_info["chair_name"]
+        
+        # Find the actual chair delegate record
+        chair_delegate = Delegate.query.filter_by(
+            name=chair_name, 
+            country="Chair", 
+            committee=committee
+        ).first()
+        
+        if chair_delegate:
+            return jsonify({
+                'success': True,
+                'committee': chair_delegate.committee,
+                'id': chair_delegate.id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Chair delegate not found'
+            }), 401
+    
+    # Normal delegate login - explicitly exclude chair accounts
+    delegate = Delegate.query.filter_by(name=name, country=country).filter(
+        ~Delegate.name.in_(['Junior Chair', 'Senior Chair', 'Security Council Chair'])
+    ).first()
 
     if delegate:
         return jsonify({
             'success': True,
             'committee': delegate.committee,
-            'id': delegate.id  # Return delegate's ID
+            'id': delegate.id
         })
     else:
         return jsonify({
